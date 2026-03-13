@@ -24,7 +24,7 @@ const HorrorNav = () => {
           <Link to="/home" className="flex items-center gap-2">
             <Flame className="w-6 h-6 text-primary animate-pulseGlow" />
             <span className="font-horror text-lg text-primary text-glow-red">
-              PhantomVeil
+              Whisper in the dark!
             </span>
           </Link>
 

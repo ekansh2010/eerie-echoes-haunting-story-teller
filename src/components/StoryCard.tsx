@@ -20,13 +20,14 @@ const StoryCard = ({ story, index }: { story: Story; index: number }) => {
     >
       <Link to={`/story/${story.id}`} className="block group">
         <div className="horror-card overflow-hidden transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_30px_hsl(0_85%_45%/0.1)]">
-          {/* Cover area */}
+
           <div className="h-48 bg-horror-gradient relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
             <div className="absolute top-3 left-3">
               <span className={`text-xs px-2 py-1 rounded-full ${categoryColors[story.category] || "bg-secondary text-secondary-foreground"}`}>
                 {story.category}
               </span>
+              <img src={story.coverImage} alt={story.title} width={500} height={300} />
             </div>
             <div className="absolute bottom-3 left-3 right-3">
               <h3 className="font-creepy text-xl text-foreground group-hover:text-primary transition-colors line-clamp-2">

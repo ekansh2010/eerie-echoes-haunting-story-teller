@@ -29,8 +29,11 @@ const StoryDetailPage = () => {
 
           {/* Cover */}
           <div className="h-64 bg-horror-gradient rounded-lg mb-8 relative overflow-hidden horror-border">
+            <img src={story.coverImage} alt={story.title} className="absolute inset-0 w-full h-full object-cover"/>
+            
             <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
             <div className="absolute bottom-4 left-4">
+
               <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary">
                 {story.category}
               </span>

@@ -16,7 +16,7 @@ const LoginPage = () => {
       >
         <div className="text-center mb-8">
           <Flame className="w-10 h-10 text-primary mx-auto mb-3 animate-pulseGlow" />
-          <h1 className="font-horror text-2xl text-primary text-glow-red">PhantomVeil</h1>
+          <h1 className="font-horror text-2xl text-primary text-glow-red">Eerie Echoes</h1>
           <p className="text-sm text-muted-foreground mt-2">Enter if you dare</p>
         </div>
 

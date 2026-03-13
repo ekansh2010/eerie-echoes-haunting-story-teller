@@ -26,9 +26,15 @@ export default {
         foreground: "hsl(var(--foreground))",
         blood: "hsl(var(--blood))",
         "blood-glow": "hsl(var(--blood-glow))",
+        "horror-void":  "hsl(var(--horror-void))",
+        "horror-blood": "hsl(var(--horror-blood))",
+        "horror-ghost": "hsl(var(--horror-ghost))",
+        "horror-fog":   "hsl(var(--horror-fog))",
+        "horror-moon":  "hsl(var(--horror-moon))",
         ash: "hsl(var(--ash))",
         void: "hsl(var(--void))",
         fog: "hsl(var(--fog))",
+        
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",

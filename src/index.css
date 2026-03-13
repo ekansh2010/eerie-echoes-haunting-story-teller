@@ -125,6 +125,22 @@
   .flashlight {
     background: radial-gradient(circle 120px at var(--mouse-x, 50%) var(--mouse-y, 50%), hsl(0 0% 100% / 0.04) 0%, transparent 100%);
   }
+
+  .bg-horror-void {
+    background-color: hsl(var(--horror-void));
+  }
+  .bg-horror-blood {
+    background-color: hsl(var(--horror-blood));
+  }
+  .bg-horror-ghost {
+    background-color: hsl(var(--horror-ghost));
+  }
+  .text-horror-blood {
+    color: hsl(var(--horror-blood));
+  }
+  .fill-horror-void\/80 {
+    fill: hsl(var(--horror-void) / 0.8);
+  }
 }
 
 @keyframes glitch {
@@ -165,4 +181,22 @@
   50% { transform: translate(-1px, 1px); }
   70% { transform: translate(1px, 1px); }
   90% { transform: translate(-1px, -1px); }
+}
+
+@keyframes bat-fly {
+  0% {
+    transform: translateX(-100px) translateY(0px) rotate(0deg);
+    opacity: 0;
+  }
+  5%  { opacity: 1; }
+  20% { transform: translateX(20vw)  translateY(-40px) rotate(-8deg); }
+  35% { transform: translateX(35vw)  translateY(10px)  rotate(5deg);  }
+  50% { transform: translateX(50vw)  translateY(-25px) rotate(-6deg); }
+  65% { transform: translateX(65vw)  translateY(15px)  rotate(7deg);  }
+  80% { transform: translateX(80vw)  translateY(-20px) rotate(-4deg); }
+  95% { opacity: 1; }
+  100% {
+    transform: translateX(110vw) translateY(5px) rotate(3deg);
+    opacity: 0;
+  }
 }
