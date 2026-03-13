@@ -17,7 +17,7 @@ const RegisterPage = () => {
       >
         <div className="text-center mb-8">
           <Flame className="w-10 h-10 text-primary mx-auto mb-3 animate-pulseGlow" />
-          <h1 className="font-horror text-2xl text-primary text-glow-red">Join PhantomVeil</h1>
+          <h1 className="font-horror text-2xl text-primary text-glow-red">Join Eerie Echoes</h1>
           <p className="text-sm text-muted-foreground mt-2">Become part of the darkness</p>
         </div>
 
