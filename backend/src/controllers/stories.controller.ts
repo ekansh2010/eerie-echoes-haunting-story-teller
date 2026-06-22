@@ -61,7 +61,7 @@ export const getStories = async (req: AuthRequest, res: Response) => {
 
 export const getStoryDetail = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
     const currentUserId = getOptionalUserId(req);
 
     const story = await Story.findOneAndUpdate(
@@ -148,7 +148,7 @@ export const createStory = async (req: AuthRequest, res: Response) => {
 
 export const toggleLike = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
     const userId = req.user?.id;
 
     if (!userId) {
@@ -184,7 +184,7 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
 
 export const addComment = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
     const { text } = req.body;
     const userId = req.user?.id;
     const username = req.user?.username;
@@ -218,7 +218,7 @@ export const addComment = async (req: AuthRequest, res: Response) => {
 
 export const deleteStory = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
     const userId = req.user?.id;
 
     if (!userId) {
@@ -256,7 +256,7 @@ export const deleteStory = async (req: AuthRequest, res: Response) => {
 
 export const deleteComment = async (req: AuthRequest, res: Response) => {
   try {
-    const { id, commentId } = req.params;
+    const { id, commentId } = req.params as { id: string; commentId: string };
     const userId = req.user?.id;
 
     if (!userId) {
@@ -294,7 +294,7 @@ export const deleteComment = async (req: AuthRequest, res: Response) => {
 
 export const applyForAdoption = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
     const { notes } = req.body;
     const userId = req.user?.id;
     const username = req.user?.username;
@@ -342,7 +342,7 @@ export const getApplications = async (req: AuthRequest, res: Response) => {
 
 export const updateApplicationStatus = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
     const { status } = req.body;
     const userId = req.user?.id;
     

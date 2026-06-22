@@ -33,7 +33,7 @@ export const getUsers = async (req: AuthRequest, res: Response) => {
 
 export const banUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
 
     if (id === req.user?.id) {
       return res.status(400).json({ error: "You cannot ban yourself from the void." });
@@ -60,7 +60,7 @@ export const banUser = async (req: AuthRequest, res: Response) => {
 
 export const toggleFeatureStory = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
 
     const story = await Story.findOne({ id });
     if (!story) {
