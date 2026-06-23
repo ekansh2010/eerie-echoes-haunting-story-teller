@@ -290,10 +290,6 @@ const Echoes: React.FC<EchoesProps> = ({ onComplete }) => {
                                 );
                             })}
                         </div>
-
-                        <span className="text-[10px] text-muted-foreground uppercase font-sans tracking-widest mt-8 animate-pulse">
-                            Entering the Void
-                        </span>
                     </motion.div>
                 )}
 
