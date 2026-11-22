@@ -62,7 +62,10 @@ export const createApp = (options: AppOptions = {}): Express => {
   app.use(express.urlencoded({ extended: false, limit: "200kb" }));
 
   // Health checks (both paths, since Vercel only routes /api/* to the function).
-  const health = (_req: Request, res: Response) => {
+  const health = async (_req: Request, res: Response) => {
+    // On a cold serverless instance nothing has connected yet; try once so the
+    // probe reports real database reachability instead of "not attempted".
+    if (autoConnect && !isDbConnected()) await connectDb().catch(() => undefined);
     const db = isDbConnected();
     res.status(db ? 200 : 503).json({ status: db ? "alive in the void" : "degraded", db: db ? "connected" : "disconnected", time: new Date().toISOString() });
   };
