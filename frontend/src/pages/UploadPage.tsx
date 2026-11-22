@@ -7,11 +7,22 @@ import { categories } from "@/data/mockStories";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { getErrorMessage } from "@/lib/utils";
+import type { ApiError, Story, UploadResponse } from "@/types/story";
+
+interface PublishStoryPayload {
+  title: string;
+  content: string;
+  category: string;
+  coverImage?: string;
+}
 
 const UploadPage = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("");
+  const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   
   const { user, authFetch } = useAuth();
   const { toast } = useToast();
@@ -30,20 +41,61 @@ const UploadPage = () => {
     }
   }, [user, navigate, toast]);
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await authFetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data: UploadResponse & Partial<ApiError> = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      setCoverImage(data.url);
+      toast({
+        title: "Cover Uploaded",
+        description: "Your custom image is sealed for this story.",
+      });
+    } catch (err: unknown) {
+      toast({
+        variant: "destructive",
+        title: "Upload Failed",
+        description: getErrorMessage(err, "An error occurred."),
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const publishMutation = useMutation({
+    mutationKey: ["publishStory"],
     mutationFn: async () => {
+      const payload: PublishStoryPayload = { title, content, category };
+      if (coverImage) {
+        payload.coverImage = coverImage;
+      }
+
       const res = await authFetch("/api/stories", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ title, content, category }),
+        body: JSON.stringify(payload),
       });
-      const data = await res.json();
+      const data: Story & Partial<ApiError> = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Failed to publish");
       }
-      return data;
+      return data as Story;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stories"] });
@@ -53,7 +105,7 @@ const UploadPage = () => {
       });
       navigate("/home");
     },
-    onError: (err: any) => {
+    onError: (err) => {
       toast({
         variant: "destructive",
         title: "Could not publish",
@@ -116,14 +168,31 @@ const UploadPage = () => {
               </div>
             </div>
 
-            {/* Cover image placeholder warning */}
+            {/* Cover image upload */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">Cover Image</label>
-              <div className="horror-card p-6 flex flex-col items-center justify-center border-dashed border-2 hover:border-primary/40 transition-colors">
-                <Image className="w-8 h-8 text-muted-foreground mb-2" />
-                <p className="text-xs text-muted-foreground font-typewriter">
-                  A matching cover will be auto-generated in the void.
-                </p>
+              <div className="horror-card p-6 flex flex-col items-center justify-center border-dashed border-2 hover:border-primary/40 transition-colors relative cursor-pointer min-h-[140px]">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage}
+                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                />
+                {coverImage ? (
+                  <div className="text-center w-full">
+                    <img src={coverImage} alt="Cover Preview" className="mx-auto max-h-40 rounded mb-2 border border-border" />
+                    <p className="text-xs text-primary font-typewriter">Custom cover uploaded. Click or drag to replace.</p>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <Image className="w-8 h-8 text-muted-foreground mb-2 mx-auto" />
+                    <p className="text-xs text-muted-foreground font-typewriter">
+                      {uploadingImage ? "Uploading to the void..." : "Click or drag an image here to upload custom cover"}
+                    </p>
+                    <span className="text-[10px] text-muted-foreground/60 block mt-1">Leaves empty for auto-generated AI cover</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -142,7 +211,7 @@ const UploadPage = () => {
             {/* Submit */}
             <button
               onClick={handlePublish}
-              disabled={publishMutation.isPending}
+              disabled={publishMutation.isPending || uploadingImage}
               className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Upload className="w-4 h-4" />

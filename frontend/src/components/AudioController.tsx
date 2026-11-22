@@ -2,26 +2,54 @@ import { useState, useRef, useEffect } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { motion } from "framer-motion";
 
-const tracks = [
-  "/audio/tense-horror-background.mp3",
-  "/audio/scary-horror-music.mp3",
-  "/audio/horror-music-box.mp3",
-];
+interface AudioTrack {
+  id: string;
+  title: string;
+  url: string;
+  duration?: string;
+  credit?: string;
+}
 
 const AudioController = () => {
   const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(0.15);
+  const [tracks, setTracks] = useState<AudioTrack[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [showSlider, setShowSlider] = useState(false);
 
   useEffect(() => {
-    const audio = new Audio(tracks[0]);
-    audio.loop = true;
-    audio.volume = volume;
-    audioRef.current = audio;
+    const fetchTracks = async () => {
+      try {
+        const res = await fetch("/api/audio-tracks");
+        if (res.ok) {
+          const data = await res.json();
+          setTracks(data);
+          if (data.length > 0) {
+            const audio = new Audio(data[0].url);
+            audio.loop = true;
+            audio.volume = volume;
+            audioRef.current = audio;
+            
+            // Only play if not muted initially
+            if (!muted) {
+              audio.play().catch(() => {
+                console.log("Autoplay blocked by browser policy. Interaction required.");
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error loading audio tracks:", error);
+      }
+    };
+
+    fetchTracks();
+
     return () => {
-      audio.pause();
-      audio.src = "";
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
     };
   }, []);
 
@@ -33,7 +61,7 @@ const AudioController = () => {
       audioRef.current.volume = volume;
       audioRef.current.play().catch(() => {});
     }
-  }, [muted, volume]);
+  }, [muted, volume, tracks]); // Include tracks in dependencies to play once tracks are loaded
 
   return (
     <motion.div
@@ -59,6 +87,7 @@ const AudioController = () => {
         onClick={() => setMuted(!muted)}
         className="p-3 rounded-full bg-secondary/80 backdrop-blur-sm horror-border hover:bg-primary/20 transition-colors"
         aria-label={muted ? "Unmute" : "Mute"}
+        title={tracks.length > 0 ? `Playing: ${tracks[0].title}` : undefined}
       >
         {muted ? (
           <VolumeX className="w-5 h-5 text-muted-foreground" />

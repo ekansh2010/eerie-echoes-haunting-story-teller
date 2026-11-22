@@ -16,6 +16,10 @@ dist-ssr
 .env
 .env.*
 .env.local
+!.env.example
+
+# Legacy local uploads (images now live in MongoDB)
+backend/uploads
 
 # Editor directories and files
 .vscode/*

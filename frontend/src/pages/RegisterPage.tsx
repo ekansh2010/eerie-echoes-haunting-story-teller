@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { Flame, ArrowLeft, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { getErrorMessage } from "@/lib/utils";
+import { PASSWORD_RULE_MESSAGE, validateEmail, validatePassword } from "@/lib/validation";
 
 const RegisterPage = () => {
   const [username, setUsername] = useState("");
@@ -16,9 +18,6 @@ const RegisterPage = () => {
   const { register } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  const validateEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
-  const validatePassword = (p: string) => p.length >= 8 && /[A-Za-z]/.test(p) && /[0-9]/.test(p);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +43,7 @@ const RegisterPage = () => {
       toast({
         variant: "destructive",
         title: "Weak Password",
-        description: "Password must be at least 8 characters long and contain both letters and numbers.",
+        description: PASSWORD_RULE_MESSAGE,
       });
       return;
     }
@@ -66,11 +65,11 @@ const RegisterPage = () => {
         description: "You have embraced the darkness.",
       });
       navigate("/home");
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         variant: "destructive",
         title: "Registration failed",
-        description: err.message || "An error occurred in the dark.",
+        description: getErrorMessage(err, "An error occurred in the dark."),
       });
     } finally {
       setSubmitting(false);

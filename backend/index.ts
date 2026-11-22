@@ -1,59 +1,36 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import mongoose from "mongoose";
-import { initDb } from "./src/database/mongoDb";
-import authRoutes from "./src/routes/auth.routes";
-import storyRoutes from "./src/routes/stories.routes";
-import adminRoutes from "./src/routes/admin.routes";
-
-dotenv.config();
-
-// Initialize Database & Seeding
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/eerie_echoes";
-mongoose.connect(MONGODB_URI)
-  .then(async () => {
-    console.log("Connected to MongoDB!");
-    await initDb();
-  })
-  .catch(err => console.error("MongoDB connection error:", err));
-
-const app = express();
-const PORT = process.env.PORT || 5000;
-
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-// Mount API Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/stories", storyRoutes);
-app.use("/api/admin", adminRoutes);
-
-// Serve static files from the React app in production
 import path from "path";
 import { fileURLToPath } from "url";
+import { env } from "./src/config/env";
+import { createApp } from "./src/app";
+import { connectDb, disconnectDb } from "./src/database/connection";
+import { logger } from "./src/utils/logger";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const distPath = path.join(__dirname, "../dist");
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-app.use(express.static(distPath));
+/** Single-server mode also serves the built React app from frontend/dist. */
+const app = createApp({ staticDir: path.join(__dirname, "../frontend/dist") });
 
-// Health check endpoint
-app.get("/health", (req, res) => {
-  res.json({ status: "alive in the void", time: new Date().toISOString() });
-});
+const isDirectRun = !process.env.VERCEL && process.env.NODE_ENV !== "test";
 
-// Serve frontend for all other requests
-app.get("/*splat", (req, res) => {
-  res.sendFile(path.join(distPath, "index.html"));
-});
-
-if (!process.env.VERCEL) {
-  app.listen(PORT, () => {
-    console.log(`[Eerie Echoes Server] whispering on port ${PORT}...`);
+if (isDirectRun) {
+  const server = app.listen(env.PORT, () => {
+    logger.info(`[Eerie Echoes Server] whispering on port ${env.PORT}...`);
   });
+
+  // Connect eagerly at boot (requests also lazily ensure a connection).
+  connectDb().catch((err) => logger.error("Initial MongoDB connection failed; will retry on demand", err));
+
+  const shutdown = (signal: string) => {
+    logger.info(`${signal} received — shutting down gracefully`);
+    server.close(async () => {
+      await disconnectDb().catch(() => undefined);
+      process.exit(0);
+    });
+    setTimeout(() => process.exit(1), 10_000).unref();
+  };
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("unhandledRejection", (reason) => logger.error("Unhandled promise rejection", reason));
 }
 
 export default app;

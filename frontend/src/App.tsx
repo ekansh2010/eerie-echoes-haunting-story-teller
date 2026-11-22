@@ -10,6 +10,8 @@ import UploadPage from "./pages/UploadPage";
 import ProfilePage from "./pages/ProfilePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import Echoes from "./components/Echoes";
@@ -33,6 +35,8 @@ const App = () => (
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/echoes" element={<Echoes />} />
           <Route path="*" element={<NotFound />} />

@@ -3,8 +3,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Users, BookOpen, MessageCircle, Star, Ban, Trash2, ArrowLeft, Search, Check, X, Flame } from "lucide-react";
 import HorrorLayout from "@/components/HorrorLayout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, type User } from "@/hooks/useAuth";
+import type { Story } from "@/types/story";
 import { useToast } from "@/hooks/use-toast";
+
+interface AdminStats {
+  totalStories: number;
+  activeUsers: number;
+  totalComments: number;
+  totalReports: number;
+}
 
 const AdminPage = () => {
   const { authFetch, user } = useAuth();
@@ -21,7 +29,7 @@ const AdminPage = () => {
   const [deletingStoryId, setDeletingStoryId] = useState<string | null>(null);
 
   // Stats Query
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
     queryKey: ["adminStats"],
     queryFn: async () => {
       const res = await authFetch("/api/admin/stats");
@@ -31,7 +39,7 @@ const AdminPage = () => {
   });
 
   // Users Query
-  const { data: users = [], isLoading: usersLoading } = useQuery<any[]>({
+  const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ["adminUsers"],
     queryFn: async () => {
       const res = await authFetch("/api/admin/users");
@@ -42,10 +50,11 @@ const AdminPage = () => {
   });
 
   // Stories Query
-  const { data: stories = [], isLoading: storiesLoading } = useQuery<any[]>({
+  const { data: stories = [], isLoading: storiesLoading } = useQuery<Story[]>({
     queryKey: ["adminStories", storySearch],
     queryFn: async () => {
       const params = new URLSearchParams();
+      params.append("limit", "all");
       if (storySearch) params.append("search", storySearch);
       const res = await authFetch(`/api/stories?${params.toString()}`);
       if (!res.ok) throw new Error("Could not summon stories");
@@ -59,7 +68,7 @@ const AdminPage = () => {
     mutationFn: async (storyId: string) => {
       const res = await authFetch(`/api/admin/stories/${storyId}/feature`, { method: "POST" });
       if (!res.ok) throw new Error("Could not toggle feature status");
-      return res.json();
+      return (await res.json()) as { featured: boolean };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["adminStories"] });
@@ -69,7 +78,7 @@ const AdminPage = () => {
         description: data.featured ? "This nightmare is now highlighted on the feed." : "The horror has retreated back to the shadows.",
       });
     },
-    onError: (err: any) => {
+    onError: (err) => {
       toast({
         variant: "destructive",
         title: "Failed to feature content",
@@ -95,7 +104,7 @@ const AdminPage = () => {
         description: "The trespasser and all of their whispers have been wiped from existence.",
       });
     },
-    onError: (err: any) => {
+    onError: (err) => {
       toast({
         variant: "destructive",
         title: "Banishment Failed",
@@ -121,7 +130,7 @@ const AdminPage = () => {
         description: "The story has been wiped from the dark void.",
       });
     },
-    onError: (err: any) => {
+    onError: (err) => {
       toast({
         variant: "destructive",
         title: "Purge Failed",
@@ -131,7 +140,7 @@ const AdminPage = () => {
   });
 
   // User filter
-  const filteredUsers = users.filter((u: any) =>
+  const filteredUsers = users.filter((u) =>
     u.username.toLowerCase().includes(userSearch.toLowerCase()) ||
     u.email.toLowerCase().includes(userSearch.toLowerCase())
   );

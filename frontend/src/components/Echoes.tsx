@@ -87,7 +87,7 @@ const Echoes: React.FC<EchoesProps> = ({ onComplete }) => {
                 audioRef.current.pause();
             }
             if (typeof window !== "undefined") {
-                (window as any).__eerie_echoes_intro_shown = true;
+                window.__eerie_echoes_intro_shown = true;
             }
             if (onComplete) {
                 onComplete();

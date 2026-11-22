@@ -6,6 +6,7 @@ import HorrorLayout from "@/components/HorrorLayout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import type { StoryDetail } from "@/types/story";
 
 const StoryDetailPage = () => {
   const { id } = useParams();
@@ -37,7 +38,7 @@ const StoryDetailPage = () => {
         description: "Your request to adopt this horror has been submitted.",
       });
     },
-    onError: (err: any) => {
+    onError: (err) => {
       toast({
         variant: "destructive",
         title: "Failed",
@@ -62,7 +63,7 @@ const StoryDetailPage = () => {
       });
       navigate("/home");
     },
-    onError: (err: any) => {
+    onError: (err) => {
       toast({
         variant: "destructive",
         title: "Error",
@@ -87,7 +88,7 @@ const StoryDetailPage = () => {
         description: "The whisper has been silenced.",
       });
     },
-    onError: (err: any) => {
+    onError: (err) => {
       toast({
         variant: "destructive",
         title: "Error",
@@ -96,7 +97,7 @@ const StoryDetailPage = () => {
     }
   });
 
-  const { data: story, isLoading, error } = useQuery<any>({
+  const { data: story, isLoading, error } = useQuery<StoryDetail>({
     queryKey: ["story", id],
     queryFn: async () => {
       const res = await authFetch(`/api/stories/${id}`);
@@ -390,7 +391,7 @@ const StoryDetailPage = () => {
 
             <div className="space-y-4">
               {story.commentList && story.commentList.length > 0 ? (
-                story.commentList.map((comment: any) => (
+                story.commentList.map((comment) => (
                    <div key={comment.id} className="horror-card p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">

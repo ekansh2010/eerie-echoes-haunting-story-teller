@@ -36,7 +36,7 @@ const HorrorLayout = ({ children, bgImage }: { children: ReactNode, bgImage?: st
         description: "The void has received your words.",
       });
     },
-    onError: (err: any) => {
+    onError: (err) => {
       toast({
         variant: "destructive",
         title: "Failed",

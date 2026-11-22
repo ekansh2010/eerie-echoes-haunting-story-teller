@@ -8,12 +8,13 @@ import Echoes from "@/components/Echoes";
 import { categories } from "@/data/mockStories";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import type { PaginatedStories } from "@/types/story";
 
 const HomePage = () => {
   // ── Session Intro Gate ─────────────────────────────────────────────────────
   const [showIntro, setShowIntro] = useState(() => {
     if (typeof window !== "undefined") {
-      return !(window as any).__eerie_echoes_intro_shown;
+      return !window.__eerie_echoes_intro_shown;
     }
     return true;
   });
@@ -96,8 +97,15 @@ const HomePage = () => {
 
   // ── Story Query ────────────────────────────────────────────────────────────
   const { authFetch } = useAuth();
-  const { data: stories = [], isLoading } = useQuery<any[]>({
-    queryKey: ["stories", activeCategory, searchQuery],
+  const [page, setPage] = useState(1);
+
+  // Reset page when category or search changes
+  useEffect(() => {
+    setPage(1);
+  }, [activeCategory, searchQuery]);
+
+  const { data, isLoading } = useQuery<PaginatedStories>({
+    queryKey: ["stories", activeCategory, searchQuery, page],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (activeCategory !== "All") {
@@ -106,6 +114,8 @@ const HomePage = () => {
       if (searchQuery) {
         params.append("search", searchQuery);
       }
+      params.append("page", page.toString());
+      params.append("limit", "6");
       const res = await authFetch(`/api/stories?${params.toString()}`);
       if (!res.ok) {
         throw new Error("Failed to summon stories");
@@ -113,6 +123,9 @@ const HomePage = () => {
       return res.json();
     }
   });
+
+  const stories = data?.stories || [];
+  const totalPages = data?.totalPages || 1;
 
   // ── Bat configs — fixed at mount so positions don't re-randomize on render ─
   const batConfigs = useRef(
@@ -128,7 +141,7 @@ const HomePage = () => {
       <div className="bg-void min-h-screen overflow-hidden">
         <Echoes onComplete={() => {
           if (typeof window !== "undefined") {
-            (window as any).__eerie_echoes_intro_shown = true;
+            window.__eerie_echoes_intro_shown = true;
           }
           setShowIntro(false);
         }} />
@@ -329,11 +342,42 @@ const HomePage = () => {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {stories.map((story, i) => (
-                <StoryCard key={story.id} story={story} index={i} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {stories.map((story, i) => (
+                  <StoryCard key={story.id} story={story} index={i} />
+                ))}
+              </div>
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-4 mt-12 font-typewriter">
+                  <button
+                    disabled={page === 1}
+                    onClick={() => {
+                      setPage((prev) => Math.max(prev - 1, 1));
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="px-4 py-2 rounded bg-secondary hover:bg-secondary/80 text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-border hover:border-primary/40"
+                  >
+                    &larr; Prev
+                  </button>
+                  <span className="text-xs text-muted-foreground">
+                    Page <span className="text-primary font-bold">{page}</span> of {totalPages}
+                  </span>
+                  <button
+                    disabled={page === totalPages}
+                    onClick={() => {
+                      setPage((prev) => Math.min(prev + 1, totalPages));
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="px-4 py-2 rounded bg-secondary hover:bg-secondary/80 text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-border hover:border-primary/40"
+                  >
+                    Next &rarr;
+                  </button>
+                </div>
+              )}
+            </>
           )}
 
           {!isLoading && stories.length === 0 && (

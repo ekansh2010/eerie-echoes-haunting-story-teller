@@ -7,12 +7,51 @@ import StoryCard from "@/components/StoryCard";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { getErrorMessage } from "@/lib/utils";
+import type { ApiError, Application, Story, UploadResponse } from "@/types/story";
 
 const ProfilePage = () => {
-  const { user, authFetch, verifyEmail } = useAuth();
+  const { user, authFetch, resendVerification, updateAvatar } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"stories" | "likes" | "covenants">("stories");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [sendingVerification, setSendingVerification] = useState(false);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingAvatar(true);
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await authFetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data: UploadResponse & Partial<ApiError> = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      await updateAvatar(data.url);
+      toast({
+        title: "Soul Bound",
+        description: "Your new avatar has been bound to your presence.",
+      });
+    } catch (err: unknown) {
+      toast({
+        variant: "destructive",
+        title: "Upload Failed",
+        description: getErrorMessage(err, "An error occurred."),
+      });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) {
@@ -25,10 +64,10 @@ const ProfilePage = () => {
     }
   }, [user, navigate, toast]);
 
-  const { data: stories = [], isLoading } = useQuery<any[]>({
+  const { data: stories = [], isLoading } = useQuery<Story[]>({
     queryKey: ["stories"],
     queryFn: async () => {
-      const res = await authFetch("/api/stories");
+      const res = await authFetch("/api/stories?limit=all");
       if (!res.ok) {
         throw new Error("Failed to summon stories");
       }
@@ -37,7 +76,7 @@ const ProfilePage = () => {
     enabled: !!user,
   });
 
-  const { data: applications = [] } = useQuery<any[]>({
+  const { data: applications = [] } = useQuery<Application[]>({
     queryKey: ["applications"],
     queryFn: async () => {
       const res = await authFetch("/api/stories/applications");
@@ -52,19 +91,22 @@ const ProfilePage = () => {
   const userStories = stories.filter((s) => s.authorId === user.id);
   const likedStories = stories.filter((s) => s.likedByUser);
 
-  const handleVerify = async () => {
+  const handleResendVerification = async () => {
+    setSendingVerification(true);
     try {
-      await verifyEmail();
+      const { message } = await resendVerification();
       toast({
-        title: "Verified",
-        description: "Your soul has been recognized by the void.",
+        title: "Summons Sent",
+        description: message,
       });
-    } catch (error) {
+    } catch (err: unknown) {
       toast({
         variant: "destructive",
         title: "Failed",
-        description: "Could not verify your email.",
+        description: getErrorMessage(err, "Could not send the verification email."),
       });
+    } finally {
+      setSendingVerification(false);
     }
   };
 
@@ -82,8 +124,27 @@ const ProfilePage = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           {/* Profile header */}
           <div className="horror-card p-8 mb-8 text-center">
-            <div className="w-24 h-24 rounded-full bg-secondary mx-auto mb-4 flex items-center justify-center">
-              <Skull className="w-10 h-10 text-primary animate-pulse" />
+            <div className="w-24 h-24 rounded-full bg-secondary mx-auto mb-4 flex items-center justify-center relative overflow-hidden group border border-border cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                disabled={uploadingAvatar}
+                className="absolute inset-0 opacity-0 cursor-pointer z-20"
+              />
+              {uploadingAvatar ? (
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
+                  <span className="text-[10px] text-primary">Uploading...</span>
+                </div>
+              ) : null}
+              {user.avatar ? (
+                <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+              ) : (
+                <Skull className="w-10 h-10 text-primary animate-pulse group-hover:scale-110 transition-transform duration-300" />
+              )}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
+                <span className="text-[10px] text-foreground font-typewriter">Change Soul</span>
+              </div>
             </div>
             <h1 className="font-creepy text-2xl text-foreground mb-1">{user.username}</h1>
             <p className="text-sm text-muted-foreground font-typewriter mb-4">
@@ -125,8 +186,12 @@ const ProfilePage = () => {
                     <CheckCircle className="w-3.5 h-3.5" /> Soul Verified
                   </span>
                 ) : (
-                  <button onClick={handleVerify} className="text-xs text-primary hover:text-primary/80 font-medium underline">
-                    Verify Your Soul
+                  <button
+                    onClick={handleResendVerification}
+                    disabled={sendingVerification}
+                    className="text-xs text-primary hover:text-primary/80 font-medium underline disabled:opacity-50"
+                  >
+                    {sendingVerification ? "Sending..." : "Resend verification email"}
                   </button>
                 )}
               </div>
@@ -196,7 +261,7 @@ const ProfilePage = () => {
           {activeTab === "covenants" && (
             applications.length > 0 ? (
               <div className="space-y-4">
-                {applications.map((app: any) => (
+                {applications.map((app) => (
                   <div key={app.id} className="horror-card p-4 flex items-center justify-between">
                     <div>
                       <h4 className="font-medium text-foreground text-glow-red mb-1">{app.storyTitle}</h4>

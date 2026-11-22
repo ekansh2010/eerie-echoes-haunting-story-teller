@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { Flame, ArrowLeft, Loader2, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { getErrorMessage } from "@/lib/utils";
+import { validateEmail } from "@/lib/validation";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -12,10 +14,10 @@ const LoginPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showReset, setShowReset] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
-  const [newPassword, setNewPassword] = useState("");
   const [resetting, setResetting] = useState(false);
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
 
-  const { login, resetPassword } = useAuth();
+  const { login, requestPasswordReset } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -37,34 +39,46 @@ const LoginPage = () => {
         description: "You have re-entered the void.",
       });
       navigate("/home");
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         variant: "destructive",
         title: "Access Denied",
-        description: err.message || "Invalid email or password.",
+        description: getErrorMessage(err, "Invalid email or password."),
       });
     } finally {
       setSubmitting(false);
     }
   };
 
+  const closeReset = () => {
+    setShowReset(false);
+    setResetEmail("");
+    setResetMessage(null);
+  };
+
   const handleReset = async () => {
-    if (!resetEmail || !newPassword) return;
+    if (!resetEmail) return;
+    if (!validateEmail(resetEmail)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+      });
+      return;
+    }
     setResetting(true);
     try {
-      await resetPassword(resetEmail, newPassword);
+      const message = await requestPasswordReset(resetEmail);
+      setResetMessage(message);
       toast({
-        title: "Password Reset",
-        description: "Your new passphrase is set.",
+        title: "Check Your Inbox",
+        description: message,
       });
-      setShowReset(false);
-      setResetEmail("");
-      setNewPassword("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         variant: "destructive",
         title: "Failed to Reset",
-        description: err.message || "Could not reset password.",
+        description: getErrorMessage(err, "Could not reset password."),
       });
     } finally {
       setResetting(false);
@@ -144,37 +158,44 @@ const LoginPage = () => {
       {showReset && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
           <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-background border border-border rounded-lg p-6 max-w-sm w-full horror-card relative">
-            <button onClick={() => setShowReset(false)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+            <button onClick={closeReset} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
               <X className="w-5 h-5" />
             </button>
             <h3 className="font-creepy text-xl text-foreground mb-2">Reset Password</h3>
-            <p className="text-xs text-muted-foreground font-typewriter mb-4">
-              Enter your email and a new password to forge a new key.
-            </p>
-            <div className="space-y-4 mb-6">
-              <input
-                type="email"
-                value={resetEmail}
-                onChange={(e) => setResetEmail(e.target.value)}
-                placeholder="Account Email"
-                className="w-full bg-input border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
-              />
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="New Password"
-                className="w-full bg-input border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
-              />
-            </div>
-            <button 
-              onClick={handleReset} 
-              disabled={resetting || !resetEmail || !newPassword} 
-              className="w-full py-2 rounded bg-primary text-primary-foreground text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {resetting && <Loader2 className="w-4 h-4 animate-spin" />}
-              {resetting ? "Resetting..." : "Forge Key"}
-            </button>
+            {resetMessage ? (
+              <>
+                <p className="text-sm text-muted-foreground font-typewriter mb-6">{resetMessage}</p>
+                <button
+                  onClick={closeReset}
+                  className="w-full py-2 rounded bg-primary text-primary-foreground text-sm hover:bg-primary/90 transition-colors"
+                >
+                  Return
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground font-typewriter mb-4">
+                  Enter your email and we will send you a link to forge a new key.
+                </p>
+                <div className="space-y-4 mb-6">
+                  <input
+                    type="email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    placeholder="Account Email"
+                    className="w-full bg-input border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  />
+                </div>
+                <button
+                  onClick={handleReset}
+                  disabled={resetting || !resetEmail}
+                  className="w-full py-2 rounded bg-primary text-primary-foreground text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {resetting && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {resetting ? "Sending..." : "Send Reset Link"}
+                </button>
+              </>
+            )}
           </motion.div>
         </div>
       )}

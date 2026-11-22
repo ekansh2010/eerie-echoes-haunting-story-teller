@@ -1,21 +1,47 @@
 import { Router } from "express";
-import { getStories, getStoryDetail, createStory, toggleLike, addComment, deleteStory, deleteComment, applyForAdoption, getApplications, updateApplicationStatus, submitContact, getContacts } from "../controllers/stories.controller";
-import { authenticateToken } from "../middleware/auth.middleware";
-import { validateCreateStory, validateComment } from "../validation/stories.validation";
+import {
+  addComment,
+  applyForAdoption,
+  createStory,
+  deleteComment,
+  deleteStory,
+  getApplications,
+  getContacts,
+  getStories,
+  getStoryDetail,
+  submitContact,
+  toggleLike,
+  updateApplicationStatus,
+} from "../controllers/stories.controller";
+import { authenticate, optionalAuth, requireAdmin } from "../middleware/auth.middleware";
+import { contactLimiter, writeLimiter } from "../middleware/rateLimit.middleware";
+import { validate } from "../middleware/validate.middleware";
+import { commentParams, idParam } from "../validation/common";
+import {
+  applicationStatusSchema,
+  applySchema,
+  commentSchema,
+  contactSchema,
+  createStorySchema,
+  listStoriesQuery,
+} from "../validation/stories.validation";
 
 const router = Router();
 
-router.get("/", getStories);
-router.get("/applications", authenticateToken, getApplications);
-router.patch("/applications/:id", authenticateToken, updateApplicationStatus);
-router.get("/contacts", authenticateToken, getContacts);
-router.post("/contact", submitContact);
-router.get("/:id", getStoryDetail);
-router.post("/:id/apply", authenticateToken, applyForAdoption);
-router.post("/", authenticateToken, validateCreateStory, createStory);
-router.post("/:id/like", authenticateToken, toggleLike);
-router.post("/:id/comments", authenticateToken, validateComment, addComment);
-router.delete("/:id", authenticateToken, deleteStory);
-router.delete("/:id/comments/:commentId", authenticateToken, deleteComment);
+// Static paths must be registered before the "/:id" routes.
+router.get("/", optionalAuth, validate(listStoriesQuery, "query"), getStories);
+router.post("/", authenticate, writeLimiter, validate(createStorySchema), createStory);
+
+router.get("/applications", authenticate, getApplications);
+router.patch("/applications/:id", authenticate, requireAdmin, validate(idParam, "params"), validate(applicationStatusSchema), updateApplicationStatus);
+router.post("/contact", contactLimiter, optionalAuth, validate(contactSchema), submitContact);
+router.get("/contacts", authenticate, requireAdmin, getContacts);
+
+router.get("/:id", optionalAuth, validate(idParam, "params"), getStoryDetail);
+router.delete("/:id", authenticate, validate(idParam, "params"), deleteStory);
+router.post("/:id/like", authenticate, validate(idParam, "params"), toggleLike);
+router.post("/:id/comments", authenticate, writeLimiter, validate(idParam, "params"), validate(commentSchema), addComment);
+router.delete("/:id/comments/:commentId", authenticate, validate(commentParams, "params"), deleteComment);
+router.post("/:id/apply", authenticate, writeLimiter, validate(idParam, "params"), validate(applySchema), applyForAdoption);
 
 export default router;
