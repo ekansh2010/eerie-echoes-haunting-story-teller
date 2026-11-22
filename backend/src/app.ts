@@ -5,7 +5,7 @@ import compression from "compression";
 import fs from "fs";
 import path from "path";
 import { env, isProd, isTest } from "./config/env.js";
-import { connectDb, isDbConnected } from "./database/connection.js";
+import { connectDb, isDbConnected, waitForDb } from "./database/connection.js";
 import authRoutes from "./routes/auth.routes.js";
 import storyRoutes from "./routes/stories.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
@@ -65,8 +65,7 @@ export const createApp = (options: AppOptions = {}): Express => {
   const health = async (_req: Request, res: Response) => {
     // On a cold serverless instance nothing has connected yet; try once so the
     // probe reports real database reachability instead of "not attempted".
-    if (autoConnect && !isDbConnected()) await connectDb().catch(() => undefined);
-    const db = isDbConnected();
+    const db = autoConnect ? await waitForDb() : isDbConnected();
     res.status(db ? 200 : 503).json({ status: db ? "alive in the void" : "degraded", db: db ? "connected" : "disconnected", time: new Date().toISOString() });
   };
   app.get("/health", health);
@@ -96,7 +95,7 @@ export const createApp = (options: AppOptions = {}): Express => {
   // Optional SPA hosting for single-server deployments (Docker/Render/Railway).
   if (staticDir && fs.existsSync(path.join(staticDir, "index.html"))) {
     app.use(express.static(staticDir, { index: false, maxAge: isProd ? "1h" : 0 }));
-    app.get("/*splat", (_req, res) => res.sendFile(path.join(staticDir, "index.html")));
+    app.get("/{*splat}", (_req, res) => res.sendFile(path.join(staticDir, "index.html")));
   }
 
   // 503 for DB outages, everything else via the central handler.

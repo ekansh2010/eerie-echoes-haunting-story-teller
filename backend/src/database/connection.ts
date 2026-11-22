@@ -36,3 +36,29 @@ export const disconnectDb = async (): Promise<void> => {
 };
 
 export const isDbConnected = (): boolean => mongoose.connection.readyState === 1;
+
+/**
+ * Health-check helper. After a serverless instance is frozen and thawed the
+ * driver may be mid-reconnect (readyState 0/2) for a moment; queries simply
+ * buffer, so give the connection a short window before reporting "down".
+ */
+export const waitForDb = async (timeoutMs = 5000): Promise<boolean> => {
+  if (isDbConnected()) return true;
+  try {
+    await connectDb();
+  } catch {
+    return false;
+  }
+  if (isDbConnected()) return true;
+  return new Promise<boolean>((resolve) => {
+    const onConnected = () => {
+      clearTimeout(timer);
+      resolve(true);
+    };
+    const timer = setTimeout(() => {
+      mongoose.connection.off("connected", onConnected);
+      resolve(isDbConnected());
+    }, timeoutMs);
+    mongoose.connection.once("connected", onConnected);
+  });
+};
