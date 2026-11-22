@@ -1,4 +1,4 @@
-import { env } from "../config/env";
+import { env } from "../config/env.js";
 
 const LEVELS = { debug: 10, info: 20, warn: 30, error: 40, silent: 100 } as const;
 type Level = Exclude<keyof typeof LEVELS, "silent">;

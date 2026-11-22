@@ -1,6 +1,6 @@
 import nodemailer, { Transporter } from "nodemailer";
-import { env, isTest } from "../config/env";
-import { logger } from "../utils/logger";
+import { env, isTest } from "../config/env.js";
+import { logger } from "../utils/logger.js";
 
 export interface SentEmail {
   to: string;

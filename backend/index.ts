@@ -1,9 +1,9 @@
 import path from "path";
 import { fileURLToPath } from "url";
-import { env } from "./src/config/env";
-import { createApp } from "./src/app";
-import { connectDb, disconnectDb } from "./src/database/connection";
-import { logger } from "./src/utils/logger";
+import { env } from "./src/config/env.js";
+import { createApp } from "./src/app.js";
+import { connectDb, disconnectDb } from "./src/database/connection.js";
+import { logger } from "./src/utils/logger.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

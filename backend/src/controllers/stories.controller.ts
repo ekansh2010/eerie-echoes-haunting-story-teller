@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { Application, ApplicationStatus, Comment, ContactSubmission, Like, Story, User } from "../models";
-import { currentUser } from "../middleware/auth.middleware";
-import { deleteStoriesCascade, enrichStories, generateCoverUrl } from "../services/story.service";
-import { stripInternal } from "../services/serializers";
-import { HttpError } from "../utils/httpError";
-import { escapeRegex, generateId, nowTimestamp, today } from "../utils/helpers";
-import { ListStoriesQuery, MAX_ALL_RESULTS } from "../validation/stories.validation";
+import { Application, ApplicationStatus, Comment, ContactSubmission, Like, Story, User } from "../models/index.js";
+import { currentUser } from "../middleware/auth.middleware.js";
+import { deleteStoriesCascade, enrichStories, generateCoverUrl } from "../services/story.service.js";
+import { stripInternal } from "../services/serializers.js";
+import { HttpError } from "../utils/httpError.js";
+import { escapeRegex, generateId, nowTimestamp, today } from "../utils/helpers.js";
+import { ListStoriesQuery, MAX_ALL_RESULTS } from "../validation/stories.validation.js";
 
 const NOT_FOUND = "Story not found in the void...";
 

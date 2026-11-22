@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { APPLICATION_STATUSES, STORY_CATEGORIES } from "../models";
-import { imageUrl } from "./common";
+import { APPLICATION_STATUSES, STORY_CATEGORIES } from "../models/index.js";
+import { imageUrl } from "./common.js";
 
 export const MAX_PAGE_SIZE = 50;
 export const MAX_ALL_RESULTS = 1000;

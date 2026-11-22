@@ -1,6 +1,6 @@
 import rateLimit, { Options } from "express-rate-limit";
 import { RequestHandler } from "express";
-import { env } from "../config/env";
+import { env } from "../config/env.js";
 
 const passthrough: RequestHandler = (_req, _res, next) => next();
 

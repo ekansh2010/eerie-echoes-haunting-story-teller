@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { Comment, ContactSubmission, Story, User } from "../models";
-import { currentUser } from "../middleware/auth.middleware";
-import { deleteUserCascade } from "../services/story.service";
-import { toPublicUser } from "../services/serializers";
-import { HttpError } from "../utils/httpError";
+import { Comment, ContactSubmission, Story, User } from "../models/index.js";
+import { currentUser } from "../middleware/auth.middleware.js";
+import { deleteUserCascade } from "../services/story.service.js";
+import { toPublicUser } from "../services/serializers.js";
+import { HttpError } from "../utils/httpError.js";
 
 export const getAdminStats = async (_req: Request, res: Response) => {
   const [totalStories, activeUsers, totalComments, totalReports] = await Promise.all([

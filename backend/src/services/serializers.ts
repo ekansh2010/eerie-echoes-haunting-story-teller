@@ -1,4 +1,4 @@
-import { IUser } from "../models";
+import { IUser } from "../models/index.js";
 
 export interface PublicUser {
   id: string;

@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { env } from "../config/env";
-import { User, Role, IUser } from "../models";
-import { HttpError } from "../utils/httpError";
+import { env } from "../config/env.js";
+import { User, Role, IUser } from "../models/index.js";
+import { HttpError } from "../utils/httpError.js";
 
 export interface AuthUser {
   id: string;

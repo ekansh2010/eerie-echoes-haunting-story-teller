@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import { env } from "../config/env";
-import { logger } from "../utils/logger";
-import { seedDatabase } from "./seed";
+import { env } from "../config/env.js";
+import { logger } from "../utils/logger.js";
+import { seedDatabase } from "./seed.js";
 
 /**
  * Serverless-safe connection cache. On Vercel each warm function instance

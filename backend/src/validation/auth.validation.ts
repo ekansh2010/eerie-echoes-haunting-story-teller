@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { imageUrl } from "./common";
+import { imageUrl } from "./common.js";
 
 export const passwordRule = z
   .string()

@@ -1,11 +1,11 @@
 import { Router, Request, Response, NextFunction } from "express";
 import multer from "multer";
-import { Upload } from "../models";
-import { authenticate, currentUser } from "../middleware/auth.middleware";
-import { writeLimiter } from "../middleware/rateLimit.middleware";
-import { MAX_UPLOAD_BYTES, sniffImageType } from "../services/upload.service";
-import { HttpError } from "../utils/httpError";
-import { generateId } from "../utils/helpers";
+import { Upload } from "../models/index.js";
+import { authenticate, currentUser } from "../middleware/auth.middleware.js";
+import { writeLimiter } from "../middleware/rateLimit.middleware.js";
+import { MAX_UPLOAD_BYTES, sniffImageType } from "../services/upload.service.js";
+import { HttpError } from "../utils/httpError.js";
+import { generateId } from "../utils/helpers.js";
 
 /**
  * Images are stored in MongoDB (not on local disk) so uploads survive

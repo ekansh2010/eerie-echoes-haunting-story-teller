@@ -4,16 +4,16 @@ import helmet from "helmet";
 import compression from "compression";
 import fs from "fs";
 import path from "path";
-import { env, isProd, isTest } from "./config/env";
-import { connectDb, isDbConnected } from "./database/connection";
-import authRoutes from "./routes/auth.routes";
-import storyRoutes from "./routes/stories.routes";
-import adminRoutes from "./routes/admin.routes";
-import audioRoutes from "./routes/audio.routes";
-import { uploadRouter, serveUploadRouter } from "./routes/upload.routes";
-import { apiLimiter } from "./middleware/rateLimit.middleware";
-import { apiNotFound, errorHandler } from "./middleware/error.middleware";
-import { logger } from "./utils/logger";
+import { env, isProd, isTest } from "./config/env.js";
+import { connectDb, isDbConnected } from "./database/connection.js";
+import authRoutes from "./routes/auth.routes.js";
+import storyRoutes from "./routes/stories.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+import audioRoutes from "./routes/audio.routes.js";
+import { uploadRouter, serveUploadRouter } from "./routes/upload.routes.js";
+import { apiLimiter } from "./middleware/rateLimit.middleware.js";
+import { apiNotFound, errorHandler } from "./middleware/error.middleware.js";
+import { logger } from "./utils/logger.js";
 
 export interface AppOptions {
   /** Directory of the built frontend to serve (SPA). Omit to disable. */

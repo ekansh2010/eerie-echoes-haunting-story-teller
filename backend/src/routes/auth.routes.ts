@@ -8,10 +8,10 @@ import {
   resetPasswordConfirm,
   updateAvatar,
   verifyEmailToken,
-} from "../controllers/auth.controller";
-import { authenticate } from "../middleware/auth.middleware";
-import { authLimiter, emailLimiter } from "../middleware/rateLimit.middleware";
-import { validate } from "../middleware/validate.middleware";
+} from "../controllers/auth.controller.js";
+import { authenticate } from "../middleware/auth.middleware.js";
+import { authLimiter, emailLimiter } from "../middleware/rateLimit.middleware.js";
+import { validate } from "../middleware/validate.middleware.js";
 import {
   avatarSchema,
   emailOnlySchema,
@@ -19,7 +19,7 @@ import {
   registerSchema,
   resetPasswordConfirmSchema,
   tokenSchema,
-} from "../validation/auth.validation";
+} from "../validation/auth.validation.js";
 
 const router = Router();
 

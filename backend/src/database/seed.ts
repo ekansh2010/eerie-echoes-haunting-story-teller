@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
-import { env } from "../config/env";
-import { logger } from "../utils/logger";
-import { AudioTrack, Comment, Like, Story, User } from "../models";
-import { BCRYPT_ROUNDS, CASE_INSENSITIVE } from "../utils/helpers";
+import { env } from "../config/env.js";
+import { logger } from "../utils/logger.js";
+import { AudioTrack, Comment, Like, Story, User } from "../models/index.js";
+import { BCRYPT_ROUNDS, CASE_INSENSITIVE } from "../utils/helpers.js";
 
 const DEFAULT_TRACKS = [
   { id: "t1", title: "Tense Horror Background", url: "/audio/tense-horror-background.mp3", duration: "3:12", credit: "Eerie Echoes Ambient Soundscape" },

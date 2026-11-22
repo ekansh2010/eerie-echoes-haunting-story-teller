@@ -1,5 +1,5 @@
-import { Application, Comment, IStory, Like, Story, Upload, User } from "../models";
-import { stripInternal } from "./serializers";
+import { Application, Comment, IStory, Like, Story, Upload, User } from "../models/index.js";
+import { stripInternal } from "./serializers.js";
 
 export interface StoryAuthor {
   id: string;

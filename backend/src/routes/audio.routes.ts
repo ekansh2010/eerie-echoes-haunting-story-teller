@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { AudioTrack } from "../models";
-import { stripInternal } from "../services/serializers";
+import { AudioTrack } from "../models/index.js";
+import { stripInternal } from "../services/serializers.js";
 
 const router = Router();
 

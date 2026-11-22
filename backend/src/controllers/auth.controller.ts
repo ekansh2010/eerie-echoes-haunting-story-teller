@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import { User } from "../models";
-import { currentUser, signToken } from "../middleware/auth.middleware";
-import { sendPasswordResetEmail, sendVerificationEmail } from "../services/email.service";
-import { toPublicUser } from "../services/serializers";
-import { HttpError } from "../utils/httpError";
-import { BCRYPT_ROUNDS, CASE_INSENSITIVE, generateId, generateToken, hashToken, today } from "../utils/helpers";
+import { User } from "../models/index.js";
+import { currentUser, signToken } from "../middleware/auth.middleware.js";
+import { sendPasswordResetEmail, sendVerificationEmail } from "../services/email.service.js";
+import { toPublicUser } from "../services/serializers.js";
+import { HttpError } from "../utils/httpError.js";
+import { BCRYPT_ROUNDS, CASE_INSENSITIVE, generateId, generateToken, hashToken, today } from "../utils/helpers.js";
 
 const VERIFY_TTL_MS = 24 * 60 * 60 * 1000;
 const RESET_TTL_MS = 60 * 60 * 1000;

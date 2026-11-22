@@ -2,8 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
 import mongoose from "mongoose";
 import multer from "multer";
-import { HttpError } from "../utils/httpError";
-import { logger } from "../utils/logger";
+import { HttpError } from "../utils/httpError.js";
+import { logger } from "../utils/logger.js";
 
 /** JSON 404 for unknown API routes (instead of falling through to the SPA). */
 export const apiNotFound = (req: Request, _res: Response, next: NextFunction) => {

@@ -12,11 +12,11 @@ import {
   submitContact,
   toggleLike,
   updateApplicationStatus,
-} from "../controllers/stories.controller";
-import { authenticate, optionalAuth, requireAdmin } from "../middleware/auth.middleware";
-import { contactLimiter, writeLimiter } from "../middleware/rateLimit.middleware";
-import { validate } from "../middleware/validate.middleware";
-import { commentParams, idParam } from "../validation/common";
+} from "../controllers/stories.controller.js";
+import { authenticate, optionalAuth, requireAdmin } from "../middleware/auth.middleware.js";
+import { contactLimiter, writeLimiter } from "../middleware/rateLimit.middleware.js";
+import { validate } from "../middleware/validate.middleware.js";
+import { commentParams, idParam } from "../validation/common.js";
 import {
   applicationStatusSchema,
   applySchema,
@@ -24,7 +24,7 @@ import {
   contactSchema,
   createStorySchema,
   listStoriesQuery,
-} from "../validation/stories.validation";
+} from "../validation/stories.validation.js";
 
 const router = Router();
 
