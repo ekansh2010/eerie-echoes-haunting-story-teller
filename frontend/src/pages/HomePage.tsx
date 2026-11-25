@@ -5,7 +5,7 @@ import HorrorLayout from "@/components/HorrorLayout";
 import StoryCard from "@/components/StoryCard";
 import JumpScare from "@/pages/JumpScare";
 import Echoes from "@/components/Echoes";
-import { categories } from "@/data/mockStories";
+import { categories } from "@/data/categories";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import type { PaginatedStories } from "@/types/story";

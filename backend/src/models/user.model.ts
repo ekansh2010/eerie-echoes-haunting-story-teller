@@ -1,4 +1,4 @@
-import mongoose, { Schema, HydratedDocument, Model } from "mongoose";
+import mongoose, { Schema, Model } from "mongoose";
 
 export type Role = "user" | "admin";
 
@@ -20,8 +20,6 @@ export interface IUser {
   /** Embedded in JWTs; incrementing it revokes every previously issued token. */
   tokenVersion: number;
 }
-
-export type UserDocument = HydratedDocument<IUser>;
 
 const UserSchema = new Schema<IUser>(
   {

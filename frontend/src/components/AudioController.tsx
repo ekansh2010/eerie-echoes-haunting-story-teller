@@ -33,7 +33,7 @@ const AudioController = () => {
             // Only play if not muted initially
             if (!muted) {
               audio.play().catch(() => {
-                console.log("Autoplay blocked by browser policy. Interaction required.");
+                /* autoplay blocked until the user interacts */
               });
             }
           }

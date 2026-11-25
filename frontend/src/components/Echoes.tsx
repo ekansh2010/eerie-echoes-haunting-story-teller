@@ -131,7 +131,7 @@ const Echoes: React.FC<EchoesProps> = ({ onComplete }) => {
 
         audio.play()
             .then(() => setIsAudioPlaying(true))
-            .catch(() => console.log("Audio autoplay blocked. Click to enable."));
+            .catch(() => { /* autoplay blocked until the first click */ });
 
         return () => {
             audio.pause();
@@ -149,7 +149,7 @@ const Echoes: React.FC<EchoesProps> = ({ onComplete }) => {
         if (audioRef.current && audioRef.current.paused) {
             audioRef.current.play()
                 .then(() => setIsAudioPlaying(true))
-                .catch((err) => console.log("Audio unlock failed: ", err));
+                .catch(() => { /* still blocked; the mute toggle stays available */ });
         }
     };
 
@@ -162,7 +162,7 @@ const Echoes: React.FC<EchoesProps> = ({ onComplete }) => {
         } else {
             audioRef.current.play()
                 .then(() => setIsAudioPlaying(true))
-                .catch((err) => console.log("Audio play failed: ", err));
+                .catch(() => setIsAudioPlaying(false));
         }
     };
 

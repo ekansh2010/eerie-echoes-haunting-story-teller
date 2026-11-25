@@ -20,9 +20,6 @@ declare global {
   }
 }
 
-/** Kept for backwards compatibility with existing imports. */
-export type AuthRequest = Request;
-
 interface TokenPayload extends jwt.JwtPayload {
   id: string;
   tv?: number;
@@ -88,9 +85,6 @@ export const requireAdmin = (req: Request, _res: Response, next: NextFunction) =
   }
   next();
 };
-
-/** Backwards-compatible alias. */
-export const authenticateToken = authenticate;
 
 /** Narrowing helper for handlers mounted behind `authenticate`. */
 export const currentUser = (req: Request): AuthUser => {

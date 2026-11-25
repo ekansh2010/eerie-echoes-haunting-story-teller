@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Upload, Image } from "lucide-react";
 import HorrorLayout from "@/components/HorrorLayout";
-import { categories } from "@/data/mockStories";
+import { categories } from "@/data/categories";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
