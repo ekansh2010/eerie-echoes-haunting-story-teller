@@ -21,7 +21,9 @@ import { sniffImageType } from "./upload.service.js";
 
 export type CoverStatus = "none" | "generating" | "ready" | "failed";
 
-const IMAGE_TIMEOUT_MS = 45_000;
+const IMAGE_TIMEOUT_MS = 25_000;
+/** The free image API is often briefly overloaded (503/429): retry with backoff. */
+const IMAGE_RETRY_DELAYS_MS = env.NODE_ENV === "test" ? [5, 5] : [2_000, 5_000];
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 const MAX_PROMPT_CHARS = 600;
 
@@ -90,13 +92,32 @@ export const describeScene = async (title: string, category: string, content: st
 /** Stable per-story seed so a regenerated prompt still produces a consistent look. */
 const seedFor = (id: string) => [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 1_000_000;
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** GET with retries on network errors, timeouts, 429 and 5xx. Other 4xx fail at once. */
+const fetchWithRetry = async (url: URL): Promise<Response> => {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= IMAGE_RETRY_DELAYS_MS.length; attempt++) {
+    if (attempt > 0) await sleep(IMAGE_RETRY_DELAYS_MS[attempt - 1]);
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(IMAGE_TIMEOUT_MS) });
+      if (res.ok) return res;
+      lastError = new Error(`Image API responded ${res.status}`);
+      if (res.status !== 429 && res.status < 500) break;
+    } catch (err) {
+      lastError = err;
+    }
+    logger.warn(`AI cover: image attempt ${attempt + 1} failed (${String((lastError as Error)?.message ?? lastError)})`);
+  }
+  throw lastError;
+};
+
 /** Render a prompt to image bytes via Pollinations. */
 export const renderImage = async (prompt: string, seed: number): Promise<{ data: Buffer; contentType: string }> => {
   const url = new URL(`${env.IMAGE_API_BASE}/prompt/${encodeURIComponent(prompt.slice(0, MAX_PROMPT_CHARS))}`);
   url.search = new URLSearchParams({ width: "1024", height: "576", nologo: "true", seed: String(seed) }).toString();
 
-  const res = await fetch(url, { signal: AbortSignal.timeout(IMAGE_TIMEOUT_MS) });
-  if (!res.ok) throw new Error(`Image API responded ${res.status}`);
+  const res = await fetchWithRetry(url);
   const data = Buffer.from(await res.arrayBuffer());
   if (data.length > MAX_IMAGE_BYTES) throw new Error("Generated image is too large");
   const contentType = sniffImageType(data);

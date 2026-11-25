@@ -95,6 +95,31 @@ describe("AI story covers", () => {
     expect(await Upload.countDocuments()).toBe(0);
   });
 
+  it("retries when the image API is briefly overloaded", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response("busy", { status: 503 }))
+      .mockResolvedValueOnce(new Response("slow down", { status: 429 }))
+      .mockResolvedValueOnce(imageResponse());
+    vi.stubGlobal("fetch", fetchMock);
+    const u = await registerUser();
+
+    const res = await api().post("/api/stories").set(auth(u.token)).send(STORY);
+    await flush();
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect((await Story.findOne({ id: res.body.id }).lean())?.coverStatus).toBe("ready");
+  });
+
+  it("does not retry a 4xx client error", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("bad", { status: 400 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const u = await registerUser();
+    const res = await api().post("/api/stories").set(auth(u.token)).send(STORY);
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect((await Story.findOne({ id: res.body.id }).lean())?.coverStatus).toBe("failed");
+  });
+
   it("rejects a non-image response from the image API", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("<html>oops</html>", { status: 200 })));
     const u = await registerUser();
