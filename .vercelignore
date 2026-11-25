@@ -6,3 +6,5 @@ frontend/dist
 .env
 .env.local
 *.log
+design-originals
+docs

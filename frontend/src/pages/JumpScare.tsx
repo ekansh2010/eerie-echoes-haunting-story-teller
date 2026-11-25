@@ -26,7 +26,7 @@ const JumpScare = ({ isActive, onComplete }: JumpScareProps) => {
 
   return (
     <>
-      <audio ref={audioRef} src="/audio/scary-horror-music-351315.mp3" />
+      <audio ref={audioRef} src="/audio/scary-horror-music.mp3" />
       
       {/* Full screen flash */}
       <div className="fixed inset-0 z-[100] pointer-events-none animate-jump-scare-flash">

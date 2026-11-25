@@ -25,6 +25,8 @@ const StoryCard = ({ story, index }: { story: Story; index: number }) => {
             <img
               src={story.coverImage}
               alt={story.title}
+              loading="lazy"
+              decoding="async"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />

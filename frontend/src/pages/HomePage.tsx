@@ -9,15 +9,11 @@ import { categories } from "@/data/mockStories";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import type { PaginatedStories } from "@/types/story";
+import { hasSeenIntro, markIntroSeen } from "@/lib/intro";
 
 const HomePage = () => {
   // ── Session Intro Gate ─────────────────────────────────────────────────────
-  const [showIntro, setShowIntro] = useState(() => {
-    if (typeof window !== "undefined") {
-      return !window.__eerie_echoes_intro_shown;
-    }
-    return true;
-  });
+  const [showIntro, setShowIntro] = useState(() => !hasSeenIntro());
 
   // ── HorrorScene state ──────────────────────────────────────────────────────
   const [scrollY, setScrollY] = useState(0);
@@ -140,9 +136,7 @@ const HomePage = () => {
     return (
       <div className="bg-void min-h-screen overflow-hidden">
         <Echoes onComplete={() => {
-          if (typeof window !== "undefined") {
-            window.__eerie_echoes_intro_shown = true;
-          }
+          markIntroSeen();
           setShowIntro(false);
         }} />
       </div>
@@ -167,20 +161,12 @@ const HomePage = () => {
           }}
         />
 
-        {/* Background layer */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: "url('/images/background.png')",
-            ...parallaxStyle(0.2, 5),
-          }}
-        />
 
         {/* Fog layer */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60 animate-fog-drift"
           style={{
-            backgroundImage: "url('/images/background1.png')",
+            backgroundImage: "url('/images/background1.webp')",
             ...parallaxStyle(0.3, 8),
           }}
         />
@@ -196,13 +182,13 @@ const HomePage = () => {
 
         {/* Trees */}
         <img
-          src="/images/tree-left.png"
+          src="/images/tree-left.webp"
           alt=""
           className="absolute bottom-0 left-0 h-full w-auto max-w-[40%] object-contain object-bottom pointer-events-none"
           style={parallaxStyle(0.4, 15)}
         />
         <img
-          src="/images/tree-right.png"
+          src="/images/tree-right.webp"
           alt=""
           className="absolute bottom-0 right-0 h-full w-auto max-w-[40%] object-contain object-bottom pointer-events-none"
           style={parallaxStyle(0.4, -15)}
@@ -210,7 +196,7 @@ const HomePage = () => {
 
         {/* Gates — swing open on scroll, jump scare on hover */}
         <img
-          src="/images/gate-left.png"
+          src="/images/gate-left.webp"
           alt="Gate"
           className="absolute bottom-0 left-[5%] h-[80%] w-auto object-contain object-bottom gate-interactive z-10"
           style={gateLeftStyle}
@@ -218,7 +204,7 @@ const HomePage = () => {
           onMouseLeave={handleGateHoverEnd}
         />
         <img
-          src="/images/gate-right.png"
+          src="/images/gate-right.webp"
           alt="Gate"
           className="absolute bottom-0 right-[5%] h-[80%] w-auto object-contain object-bottom gate-interactive z-10"
           style={gateRightStyle}
@@ -228,7 +214,7 @@ const HomePage = () => {
 
         {/* Grass */}
         <img
-          src="/images/grass.png"
+          src="/images/grass.webp"
           alt=""
           className="absolute bottom-0 left-0 w-full h-auto object-cover object-bottom pointer-events-none"
           style={parallaxStyle(0.7, 25)}

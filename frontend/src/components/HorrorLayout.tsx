@@ -9,7 +9,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 const HorrorLayout = ({ children, bgImage }: { children: ReactNode, bgImage?: string }) => {
-  const defaultBg = '/images/horror_background.png';
+  const defaultBg = '/images/horror_background.webp';
   const [showContact, setShowContact] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

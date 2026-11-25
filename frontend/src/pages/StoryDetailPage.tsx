@@ -221,7 +221,7 @@ const StoryDetailPage = () => {
 
   if (isLoading) {
     return (
-      <HorrorLayout bgImage="/images/detail_background.png">
+      <HorrorLayout bgImage="/images/detail_background.webp">
         <div className="flex items-center justify-center min-h-[60vh]">
           <p className="text-muted-foreground font-typewriter animate-pulse">Summoning details from the void...</p>
         </div>
@@ -231,7 +231,7 @@ const StoryDetailPage = () => {
 
   if (error || !story) {
     return (
-      <HorrorLayout bgImage="/images/detail_background.png">
+      <HorrorLayout bgImage="/images/detail_background.webp">
         <div className="flex items-center justify-center min-h-[60vh]">
           <p className="text-muted-foreground font-typewriter">This story has vanished into the void...</p>
         </div>
@@ -240,7 +240,7 @@ const StoryDetailPage = () => {
   }
 
   return (
-    <HorrorLayout bgImage="/images/detail_background.png">
+    <HorrorLayout bgImage="/images/detail_background.webp">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           {/* Back */}

@@ -2,7 +2,7 @@
 
 An immersive, gothic-themed web platform for publishing, reading, and listening to bone-chilling horror stories — with AI-generated covers, ambient audio, likes, whispers (comments), story adoption, and an admin "banishment" panel.
 
-![Eerie Echoes Demo](./frontend/public/images/demo.webp)
+![Eerie Echoes Demo](./docs/demo.webp)
 
 - **Frontend:** React 18 · Vite · TypeScript · TailwindCSS · Framer Motion · TanStack Query
 - **Backend:** Node.js (≥ 20) · Express 5 · MongoDB/Mongoose 9 · Zod · JWT · bcrypt · Helmet · express-rate-limit · Multer · Nodemailer

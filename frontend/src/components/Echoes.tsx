@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Volume2, VolumeX } from "lucide-react";
+import { markIntroSeen } from "@/lib/intro";
 
 
 
@@ -48,6 +49,22 @@ const Echoes: React.FC<EchoesProps> = ({ onComplete }) => {
         })
     ).current;
 
+    // Ends the intro (timer or Skip button). Guarded so it only runs once.
+    const finishedRef = useRef(false);
+    // Parents pass inline callbacks; keep the latest in a ref so re-renders
+    // (e.g. stories loading behind the intro) don't restart the timers.
+    const onCompleteRef = useRef(onComplete);
+    onCompleteRef.current = onComplete;
+    const finish = React.useCallback(() => {
+        if (finishedRef.current) return;
+        finishedRef.current = true;
+        setPhase("complete");
+        audioRef.current?.pause();
+        markIntroSeen();
+        if (onCompleteRef.current) onCompleteRef.current();
+        else navigate("/home", { replace: true });
+    }, [navigate]);
+
     // 1. TIMING SEQUENCE CONTROL
     useEffect(() => {
         // 2.8s: Trigger glitching phase
@@ -81,20 +98,7 @@ const Echoes: React.FC<EchoesProps> = ({ onComplete }) => {
         }, 9200);
 
         // 10.2s: Navigation redirect to homepage
-        const tComplete = setTimeout(() => {
-            setPhase("complete");
-            if (audioRef.current) {
-                audioRef.current.pause();
-            }
-            if (typeof window !== "undefined") {
-                window.__eerie_echoes_intro_shown = true;
-            }
-            if (onComplete) {
-                onComplete();
-            } else {
-                navigate("/home");
-            }
-        }, 10200);
+        const tComplete = setTimeout(finish, 10200);
 
         return () => {
             clearTimeout(tGlitch);
@@ -103,7 +107,7 @@ const Echoes: React.FC<EchoesProps> = ({ onComplete }) => {
             clearTimeout(tFade);
             clearTimeout(tComplete);
         };
-    }, [navigate, onComplete]);
+    }, [finish]);
 
     // 2. Cycle horror quotes during skull scene
     useEffect(() => {
@@ -217,8 +221,16 @@ const Echoes: React.FC<EchoesProps> = ({ onComplete }) => {
             onClick={handleInteraction}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
-            className="relative w-full h-screen bg-black overflow-hidden select-none flex items-center justify-center cursor-none"
+            className={`relative w-full h-screen bg-black overflow-hidden select-none flex items-center justify-center ${phase === "scene" || phase === "fade" ? "cursor-none" : ""}`}
         >
+            <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); finish(); }}
+                className="absolute bottom-6 right-6 z-[60] px-4 py-2 rounded-md border border-red-900/50 bg-black/70 text-sm text-primary/90 hover:text-primary hover:border-primary/60 transition-colors cursor-pointer"
+                aria-label="Skip intro"
+            >
+                Skip intro →
+            </button>
             <AnimatePresence>
                 {/* PHASE 1: Glitching and Shattering title card */}
                 {(phase === "intro" || phase === "glitch" || phase === "shatter") && (
@@ -310,7 +322,7 @@ const Echoes: React.FC<EchoesProps> = ({ onComplete }) => {
                             className="relative w-full aspect-[16/9] max-h-screen z-0 pointer-events-none"
                         >
                             <img
-                                src="/images/echoes_bg.png"
+                                src="/images/echoes_bg.webp"
                                 alt="Skull background"
                                 className="w-full h-full object-cover"
                             />

@@ -89,7 +89,7 @@ const LoginPage = () => {
     <div 
       className="min-h-screen bg-horror-gradient flex items-center justify-center px-4 bg-cover bg-center relative"
       style={{
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.94)), url('/images/auth_background.png')`
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.94)), url('/images/auth_background.webp')`
       }}
     >
       <div className="absolute top-6 left-6 z-10">

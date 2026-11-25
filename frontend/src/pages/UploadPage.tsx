@@ -127,7 +127,7 @@ const UploadPage = () => {
   };
 
   return (
-    <HorrorLayout bgImage="/images/write_background.png">
+    <HorrorLayout bgImage="/images/write_background.webp">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="font-creepy text-3xl text-foreground mb-2">Unleash Your Horror</h1>
