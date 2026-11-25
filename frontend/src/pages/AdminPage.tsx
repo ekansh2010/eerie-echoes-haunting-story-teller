@@ -15,9 +15,10 @@ interface AdminStats {
 }
 
 const AdminPage = () => {
-  const { authFetch, user } = useAuth();
+  const { authFetch, user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isAdmin = user?.role === "admin";
   const [activeView, setActiveView] = useState<"overview" | "feature" | "users" | "stories">("overview");
 
   // Search terms
@@ -35,7 +36,8 @@ const AdminPage = () => {
       const res = await authFetch("/api/admin/stats");
       if (!res.ok) throw new Error("Could not summon statistics");
       return res.json();
-    }
+    },
+    enabled: isAdmin,
   });
 
   // Users Query
@@ -46,7 +48,7 @@ const AdminPage = () => {
       if (!res.ok) throw new Error("Could not summon users");
       return res.json();
     },
-    enabled: activeView === "users"
+    enabled: isAdmin && activeView === "users"
   });
 
   // Stories Query
@@ -60,7 +62,7 @@ const AdminPage = () => {
       if (!res.ok) throw new Error("Could not summon stories");
       return res.json();
     },
-    enabled: activeView === "feature" || activeView === "stories"
+    enabled: isAdmin && (activeView === "feature" || activeView === "stories")
   });
 
   // Feature Toggle Mutation
@@ -144,6 +146,10 @@ const AdminPage = () => {
     u.username.toLowerCase().includes(userSearch.toLowerCase()) ||
     u.email.toLowerCase().includes(userSearch.toLowerCase())
   );
+
+  if (authLoading) {
+    return <HorrorLayout><div className="min-h-[60vh]" aria-busy="true" /></HorrorLayout>;
+  }
 
   if (!user || user.role !== "admin") {
     return (

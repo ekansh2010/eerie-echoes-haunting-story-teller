@@ -11,7 +11,7 @@ import { getErrorMessage } from "@/lib/utils";
 import type { ApiError, Application, Story, UploadResponse } from "@/types/story";
 
 const ProfilePage = () => {
-  const { user, authFetch, resendVerification, updateAvatar } = useAuth();
+  const { user, loading: authLoading, authFetch, resendVerification, updateAvatar } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"stories" | "likes" | "covenants">("stories");
@@ -53,8 +53,9 @@ const ProfilePage = () => {
     }
   };
 
+  // Wait for the session check: a refresh or direct link must not bounce a logged-in user.
   useEffect(() => {
-    if (!user) {
+    if (!authLoading && !user) {
       toast({
         variant: "destructive",
         title: "Access Denied",
@@ -62,7 +63,7 @@ const ProfilePage = () => {
       });
       navigate("/login");
     }
-  }, [user, navigate, toast]);
+  }, [authLoading, user, navigate, toast]);
 
   const { data: stories = [], isLoading } = useQuery<Story[]>({
     queryKey: ["stories"],
@@ -86,6 +87,7 @@ const ProfilePage = () => {
     enabled: !!user,
   });
 
+  if (authLoading) return <HorrorLayout><div className="min-h-[60vh]" aria-busy="true" /></HorrorLayout>;
   if (!user) return null;
 
   const userStories = stories.filter((s) => s.authorId === user.id);

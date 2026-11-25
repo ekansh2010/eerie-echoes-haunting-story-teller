@@ -101,7 +101,31 @@ export const renderImage = async (prompt: string, seed: number): Promise<{ data:
   if (data.length > MAX_IMAGE_BYTES) throw new Error("Generated image is too large");
   const contentType = sniffImageType(data);
   if (!contentType) throw new Error("Image API returned a non-image response");
-  return { data, contentType };
+  return finishImage({ data, contentType });
+};
+
+/** Height (px) of the free-tier watermark strip Pollinations stamps on the bottom edge. */
+const WATERMARK_STRIP = 40;
+
+/**
+ * Trim the provider watermark off the bottom and re-encode as WebP (smaller to
+ * store and serve). If sharp is unavailable the original bytes are kept.
+ */
+const finishImage = async (image: { data: Buffer; contentType: string }): Promise<{ data: Buffer; contentType: string }> => {
+  try {
+    const { default: sharp } = await import("sharp");
+    const src = sharp(image.data);
+    const { width = 0, height = 0 } = await src.metadata();
+    if (width < 64 || height <= WATERMARK_STRIP * 4) return image;
+    const data = await src
+      .extract({ left: 0, top: 0, width, height: height - WATERMARK_STRIP })
+      .webp({ quality: 80 })
+      .toBuffer();
+    return { data, contentType: "image/webp" };
+  } catch (err) {
+    logger.warn("AI cover: image post-processing skipped", err);
+    return image;
+  }
 };
 
 /** Full pipeline for one story. Never throws; records the outcome on the story. */

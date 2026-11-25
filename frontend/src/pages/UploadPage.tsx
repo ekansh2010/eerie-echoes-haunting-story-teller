@@ -24,14 +24,15 @@ const UploadPage = () => {
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   
-  const { user, authFetch } = useAuth();
+  const { user, loading: authLoading, authFetch } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   // Protect route
+  // Wait for the session check: a refresh or direct link must not bounce a logged-in user.
   useEffect(() => {
-    if (!user) {
+    if (!authLoading && !user) {
       toast({
         variant: "destructive",
         title: "Access Denied",
@@ -39,7 +40,7 @@ const UploadPage = () => {
       });
       navigate("/login");
     }
-  }, [user, navigate, toast]);
+  }, [authLoading, user, navigate, toast]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -125,6 +126,8 @@ const UploadPage = () => {
     }
     publishMutation.mutate();
   };
+
+  if (authLoading || !user) return <HorrorLayout bgImage="/images/write_background.webp"><div className="min-h-[60vh]" aria-busy="true" /></HorrorLayout>;
 
   return (
     <HorrorLayout bgImage="/images/write_background.webp">
