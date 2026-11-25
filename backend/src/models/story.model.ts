@@ -8,6 +8,10 @@ export interface IStory {
   content: string;
   authorId: string;
   coverImage: string;
+  /** AI cover lifecycle: "none" for author-supplied covers. */
+  coverStatus: "none" | "generating" | "ready" | "failed";
+  /** Scene description the cover was rendered from (AI covers only). */
+  coverPrompt: string;
   category: string;
   views: number;
   /**
@@ -27,6 +31,8 @@ const StorySchema = new Schema<IStory>(
     content: { type: String, required: true, maxlength: 50000 },
     authorId: { type: String, required: true, index: true },
     coverImage: { type: String, default: "" },
+    coverStatus: { type: String, enum: ["none", "generating", "ready", "failed"], default: "none" },
+    coverPrompt: { type: String, default: "" },
     category: { type: String, required: true, index: true },
     views: { type: Number, default: 0, min: 0 },
     likes: { type: Number, default: 0 },

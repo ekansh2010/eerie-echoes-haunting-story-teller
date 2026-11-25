@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart, Eye, MessageCircle, ArrowLeft, Bookmark, Share2, Trash2, Hand } from "lucide-react";
+import { Heart, Eye, MessageCircle, ArrowLeft, Bookmark, Share2, Trash2, Hand, Sparkles, RefreshCw } from "lucide-react";
 import HorrorLayout from "@/components/HorrorLayout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -106,6 +106,44 @@ const StoryDetailPage = () => {
       }
       return res.json();
     },
+  });
+
+  // ── AI cover: poll the light status endpoint while the cover is being painted ──
+  const [repaintRequested, setRepaintRequested] = useState(false);
+  const { data: cover } = useQuery<{ coverImage: string; coverStatus: StoryDetail["coverStatus"] }>({
+    queryKey: ["story-cover", id],
+    queryFn: async () => {
+      const res = await fetch(`/api/stories/${id}/cover`);
+      if (!res.ok) throw new Error("Cover status unavailable");
+      return res.json();
+    },
+    enabled: Boolean(story) && (story?.coverStatus === "generating" || repaintRequested),
+    refetchInterval: (query) => (query.state.data && query.state.data.coverStatus !== "generating" ? false : 4000),
+    staleTime: 0,
+  });
+  const coverStatus = cover?.coverStatus ?? story?.coverStatus;
+  const coverImage = cover?.coverImage ?? story?.coverImage;
+
+  useEffect(() => {
+    if (cover && cover.coverStatus !== "generating") {
+      setRepaintRequested(false);
+      queryClient.invalidateQueries({ queryKey: ["stories"] });
+    }
+  }, [cover, queryClient]);
+
+  const repaintMutation = useMutation({
+    mutationFn: async () => {
+      const res = await authFetch(`/api/stories/${id}/cover`, { method: "POST" });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || "The spirits refused to paint");
+      return body;
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(["story-cover", id], { coverImage, coverStatus: "generating" });
+      setRepaintRequested(true);
+      toast({ title: "Repainting cover", description: "The AI is re-reading your story..." });
+    },
+    onError: (err: Error) => toast({ title: "Could not repaint", description: err.message, variant: "destructive" }),
   });
 
   const likeMutation = useMutation({
@@ -250,8 +288,26 @@ const StoryDetailPage = () => {
 
           {/* Cover */}
           <div className="h-64 bg-horror-gradient rounded-lg mb-8 relative overflow-hidden horror-border">
-            <img src={story.coverImage} alt={story.title} className="absolute inset-0 w-full h-full object-cover"/>
-            
+            <img src={coverImage} alt={story.title} className="absolute inset-0 w-full h-full object-cover" />
+            {coverStatus === "generating" && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                <span className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-full bg-black/80 text-primary animate-pulse font-typewriter">
+                  <Sparkles className="w-4 h-4" /> The AI is reading your story and painting its cover…
+                </span>
+              </div>
+            )}
+            {user && (story.authorId === user.id || user.role === "admin") && coverStatus !== "generating" && (
+              <button
+                onClick={() => repaintMutation.mutate()}
+                disabled={repaintMutation.isPending}
+                className="absolute top-3 right-3 z-10 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-black/70 border border-primary/30 text-primary hover:bg-black/90 transition-colors"
+                title="Let the AI paint a new cover from this story"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${repaintMutation.isPending ? "animate-spin" : ""}`} />
+                {coverStatus === "failed" ? "Retry AI cover" : "Repaint with AI"}
+              </button>
+            )}
+
             <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
             <div className="absolute bottom-4 left-4">
 

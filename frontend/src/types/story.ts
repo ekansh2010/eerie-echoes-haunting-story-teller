@@ -11,6 +11,9 @@ export interface Story {
   authorId?: string;
   author: Author;
   coverImage: string;
+  /** "generating" while the AI is painting the cover from the story text. */
+  coverStatus?: "none" | "generating" | "ready" | "failed";
+  coverPrompt?: string;
   category: string;
   likes: number;
   views: number;

@@ -27,4 +27,7 @@ export class HttpError extends Error {
   static conflict(message: string) {
     return new HttpError(409, message);
   }
+  static unavailable(message = "Service temporarily unavailable") {
+    return new HttpError(503, message);
+  }
 }

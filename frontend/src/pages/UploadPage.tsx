@@ -190,7 +190,7 @@ const UploadPage = () => {
                     <p className="text-xs text-muted-foreground font-typewriter">
                       {uploadingImage ? "Uploading to the void..." : "Click or drag an image here to upload custom cover"}
                     </p>
-                    <span className="text-[10px] text-muted-foreground/60 block mt-1">Leaves empty for auto-generated AI cover</span>
+                    <span className="text-[10px] text-muted-foreground/60 block mt-1">Leave empty and the AI will read your story and paint a cover from its most haunting scene</span>
                   </div>
                 )}
               </div>

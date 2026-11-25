@@ -1,5 +1,6 @@
 import { Application, Comment, IStory, Like, Story, Upload, User } from "../models/index.js";
 import { stripInternal } from "./serializers.js";
+import { aiCoverUploadId } from "./aiCover.service.js";
 
 export interface StoryAuthor {
   id: string;
@@ -59,7 +60,10 @@ export const enrichStories = async (stories: IStory[], viewerId?: string): Promi
 /** Deletes stories and everything hanging off them (comments, likes, applications). */
 export const deleteStoriesCascade = async (storyIds: string[]): Promise<void> => {
   if (storyIds.length === 0) return;
+  const covers = await Story.find({ id: { $in: storyIds } }, { coverImage: 1 }).lean();
+  const aiUploads = covers.map((s) => aiCoverUploadId(s.coverImage)).filter((id): id is string => id !== null);
   await Promise.all([
+    Upload.deleteMany({ id: { $in: aiUploads } }),
     Story.deleteMany({ id: { $in: storyIds } }),
     Comment.deleteMany({ storyId: { $in: storyIds } }),
     Like.deleteMany({ storyId: { $in: storyIds } }),

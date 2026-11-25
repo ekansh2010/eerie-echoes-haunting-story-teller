@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { Application, ApplicationStatus, Comment, ContactSubmission, Like, Story, User } from "../models/index.js";
 import { currentUser } from "../middleware/auth.middleware.js";
 import { deleteStoriesCascade, enrichStories, generateCoverUrl } from "../services/story.service.js";
+import { scheduleStoryCover } from "../services/aiCover.service.js";
+import { env } from "../config/env.js";
 import { stripInternal } from "../services/serializers.js";
 import { HttpError } from "../utils/httpError.js";
 import { escapeRegex, generateId, nowTimestamp, today } from "../utils/helpers.js";
@@ -75,12 +77,16 @@ export const createStory = async (req: Request, res: Response) => {
     coverImage?: string;
   };
 
+  // No cover supplied: show a title-based placeholder now and let the AI
+  // read the story and paint a permanent cover in the background.
+  const wantsAiCover = !coverImage && env.AI_COVERS_ENABLED;
   const story = await Story.create({
     id: generateId("s"),
     title,
     content,
     authorId: user.id,
     coverImage: coverImage || generateCoverUrl(title, category),
+    coverStatus: wantsAiCover ? "generating" : "none",
     category,
     views: 0,
     createdAt: today(),
@@ -88,6 +94,35 @@ export const createStory = async (req: Request, res: Response) => {
 
   const [enriched] = await enrichStories([story.toObject()], user.id);
   res.status(201).json(enriched);
+  if (wantsAiCover) scheduleStoryCover(story.id);
+};
+
+/** GET /api/stories/:id/cover — cheap status poll while an AI cover is painting (no view count). */
+export const getCoverStatus = async (req: Request, res: Response) => {
+  const { id } = req.params as { id: string };
+  const story = await Story.findOne({ id }, { coverImage: 1, coverStatus: 1, _id: 0 }).lean();
+  if (!story) throw HttpError.notFound(NOT_FOUND);
+  res.set("Cache-Control", "no-store").json({ coverImage: story.coverImage, coverStatus: story.coverStatus ?? "none" });
+};
+
+/** POST /api/stories/:id/cover — (re)paint the AI cover. Author or admin only. */
+export const regenerateCover = async (req: Request, res: Response) => {
+  const { id } = req.params as { id: string };
+  const user = currentUser(req);
+  if (!env.AI_COVERS_ENABLED) throw HttpError.unavailable("AI covers are disabled on this server");
+
+  const story = await Story.findOne({ id }, { authorId: 1, coverStatus: 1 }).lean();
+  if (!story) throw HttpError.notFound(NOT_FOUND);
+  if (story.authorId !== user.id && user.role !== "admin") {
+    throw HttpError.forbidden("Only the author can repaint this cover");
+  }
+  if (story.coverStatus === "generating") {
+    return res.status(202).json({ coverStatus: "generating", message: "The cover is already being painted" });
+  }
+
+  await Story.updateOne({ id }, { $set: { coverStatus: "generating" } });
+  res.status(202).json({ coverStatus: "generating", message: "The spirits are painting a new cover..." });
+  scheduleStoryCover(id);
 };
 
 export const toggleLike = async (req: Request, res: Response) => {

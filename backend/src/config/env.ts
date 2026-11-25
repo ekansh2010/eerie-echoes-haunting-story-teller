@@ -35,6 +35,11 @@ const EnvSchema = z.object({
   RATE_LIMIT_ENABLED: booleanFromEnv(nodeEnv !== "test"),
   TRUST_PROXY: z.coerce.number().int().min(0).default(1),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error", "silent"]).default(nodeEnv === "test" ? "silent" : "info"),
+  // AI cover art: Claude writes the scene, Pollinations renders it (see services/aiCover.service.ts).
+  AI_COVERS_ENABLED: booleanFromEnv(nodeEnv !== "test"),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  AI_COVER_MODEL: z.string().default("claude-opus-5-5"),
+  IMAGE_API_BASE: z.string().url().default("https://image.pollinations.ai"),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

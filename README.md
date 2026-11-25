@@ -116,6 +116,20 @@ An immersive, gothic-themed web platform for publishing, reading, and listening 
 - [x] **Profile:** the button now reads "Resend verification email". It no longer marks the email verified on the client.
 - [x] Password rules are shared by register and reset (at least 8 characters, with a letter and a number), and they match the backend.
 
+### 4b. Performance, cleanup and AI covers
+- [x] **Fast loading:** 71 MB of PNG art converted to WebP (about 1 MB in total); API functions run in Mumbai (`bom1`) next to the database; routes are code-split; static assets are long-cached.
+- [x] **Intro** plays once per session and has a Skip button.
+- [x] **Cleanup:** removed 46 unused UI files, 39 unused packages and duplicate images.
+- [x] **AI story covers.** When a story is posted without a cover:
+  1. It is saved immediately with a placeholder.
+  2. In the background, **Claude** (`claude-opus-5-5`) reads the whole story and writes a description of its most striking scene.
+  3. **Pollinations** renders that description as an image.
+  4. The **image itself is stored in MongoDB** and served from `/api/uploads/ai_…`, so it is permanent and never changes.
+  - The story page updates live while the cover is being painted.
+  - Authors and admins can **Repaint with AI**.
+  - Without `ANTHROPIC_API_KEY`, the prompt is built from the title, category and opening lines instead.
+  - `GET /api/stories/:id/cover` returns the cover status; `POST` repaints it.
+
 ### 5. Tests — `npm test` (all passing)
 
 | Suite | File | Tests | Covers |
@@ -126,6 +140,7 @@ An immersive, gothic-themed web platform for publishing, reading, and listening 
 | Integration | `backend/tests/integration/uploads.test.ts` | 11 | auth, PNG/GIF round-trip, spoofed files, size limit, headers |
 | Integration | `backend/tests/integration/app.test.ts` | 11 | health, JSON 404, malformed/oversized bodies, security headers, CORS, audio tracks |
 | Integration | `backend/tests/integration/seed.test.ts` | 9 | idempotent, non-destructive (old data-loss bug), admin from env |
+| Integration | `backend/tests/integration/aiCover.test.ts` | 15 | AI cover pipeline (mocked Claude + image API), placeholder → stored image, failures, repaint auth, cleanup |
 | Unit | `backend/tests/unit/*.test.ts` | 96 | helpers, image sniffing, serializers, validation schemas, env/config rules |
 | Frontend | `frontend/src/test/*.test.ts` | 7 | password/email validation rules |
 
@@ -150,7 +165,7 @@ Each backend test file starts its own **in-memory MongoDB**, so tests need no ex
   - [ ] dev-only `glob`/`minimatch`.
 - [ ] **Rate limits on serverless:** the limits are kept in memory for each function instance. For strict global limits on Vercel, plug a Redis or Upstash store into `express-rate-limit`.
 - [ ] **Unverified accounts:** they can still post. To require verification, add a `requireVerified` middleware to the write routes.
-- [ ] **Bundle size:** Vite warns that the main frontend chunk is about 540 KB. Code-splitting the routes would fix it.
+- [x] **Bundle size:** fixed. Routes are code-split and vendor chunks are separate.
 
 ---
 
@@ -190,6 +205,9 @@ See [`.env.example`](./.env.example) for the full list. The important ones:
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_USERNAME` | first boot | Creates the admin account if no admin exists |
 | `SEED_DEMO_DATA` | no | `true` to seed demo stories into an empty database. Defaults to off in production. |
 | `CORS_ORIGIN` | no | Only needed if the frontend is served from a different domain |
+| `ANTHROPIC_API_KEY` | for AI scene analysis | Lets Claude read each story and describe the cover scene. Without it, covers are still generated from the title and opening lines. |
+| `AI_COVERS_ENABLED` | no | Defaults to `true` (off in tests). Set to `false` to keep the old title-only placeholder covers. |
+| `AI_COVER_MODEL` | no | Defaults to `claude-opus-5-5` |
 
 ## 🚀 Deploy
 

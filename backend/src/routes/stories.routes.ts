@@ -9,6 +9,8 @@ import {
   getContacts,
   getStories,
   getStoryDetail,
+  getCoverStatus,
+  regenerateCover,
   submitContact,
   toggleLike,
   updateApplicationStatus,
@@ -39,6 +41,8 @@ router.get("/contacts", authenticate, requireAdmin, getContacts);
 
 router.get("/:id", optionalAuth, validate(idParam, "params"), getStoryDetail);
 router.delete("/:id", authenticate, validate(idParam, "params"), deleteStory);
+router.get("/:id/cover", validate(idParam, "params"), getCoverStatus);
+router.post("/:id/cover", authenticate, writeLimiter, validate(idParam, "params"), regenerateCover);
 router.post("/:id/like", authenticate, validate(idParam, "params"), toggleLike);
 router.post("/:id/comments", authenticate, writeLimiter, validate(idParam, "params"), validate(commentSchema), addComment);
 router.delete("/:id/comments/:commentId", authenticate, validate(commentParams, "params"), deleteComment);

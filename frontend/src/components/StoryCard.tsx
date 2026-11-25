@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart, Eye, MessageCircle, Flame } from "lucide-react";
+import { Heart, Eye, MessageCircle, Flame, Sparkles } from "lucide-react";
 import { Story } from "@/types/story";
 
 const categoryColors: Record<string, string> = {
@@ -30,6 +30,11 @@ const StoryCard = ({ story, index }: { story: Story; index: number }) => {
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
+            {story.coverStatus === "generating" && (
+              <span className="absolute bottom-3 right-3 flex items-center gap-1 text-[10px] px-2 py-1 rounded-full bg-black/70 text-primary animate-pulse">
+                <Sparkles className="w-3 h-3" /> AI painting cover…
+              </span>
+            )}
             <div className="absolute top-3 left-3">
               <span className={`text-xs px-2 py-1 rounded-full ${categoryColors[story.category] || "bg-secondary text-secondary-foreground"}`}>
                 {story.category}
